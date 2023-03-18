@@ -1,0 +1,137 @@
+package conversation_test
+
+import (
+	"github.com/bradfair/chat/conversation"
+	"testing"
+)
+
+func TestConversation(t *testing.T) {
+	t.Run("new", func(t *testing.T) {
+		c := conversation.New()
+		if len(c.Messages()) != 0 {
+			t.Errorf("expected conversation to be empty")
+		}
+	})
+	t.Run("append", func(t *testing.T) {
+		c := conversation.New()
+		c.Append(testMessage{role: "user", content: "message 1"})
+		c.Append(testMessage{role: "user", content: "message 2"})
+		if len(c.Messages()) != 2 {
+			t.Errorf("expected conversation to have two messages")
+		}
+		if c.Messages()[1].Content() != "message 2" {
+			t.Errorf("expected second message to be message 2")
+		}
+	})
+	t.Run("prepend", func(t *testing.T) {
+		c := conversation.New()
+		c.Prepend(testMessage{role: "user", content: "message 2"})
+		c.Prepend(testMessage{role: "user", content: "message 1"})
+		if len(c.Messages()) != 2 {
+			t.Errorf("expected conversation to have two messages")
+		}
+		if c.Messages()[0].Content() != "message 1" {
+			t.Errorf("expected first message to be message 1")
+		}
+	})
+	t.Run("remove", func(t *testing.T) {
+		c := conversation.New()
+		c.Append(testMessage{role: "user", content: "message 1"})
+		c.Append(testMessage{role: "user", content: "message 2"})
+		m := c.Remove(0)
+		if len(c.Messages()) != 1 {
+			t.Errorf("expected conversation to have one message")
+		}
+		if c.Messages()[0].Content() != "message 2" {
+			t.Errorf("expected first message to be message 2")
+		}
+		if m.Content() != "message 1" {
+			t.Errorf("expected removed message to be message 1")
+		}
+	})
+	t.Run("remove out of range", func(t *testing.T) {
+		c := conversation.New()
+		c.Append(testMessage{role: "user", content: "message 1"})
+		c.Append(testMessage{role: "user", content: "message 2"})
+		m := c.Remove(2)
+		if len(c.Messages()) != 2 {
+			t.Errorf("expected conversation to have two messages")
+		}
+		if m != nil {
+			t.Errorf("expected removed message to be nil")
+		}
+	})
+	t.Run("insert", func(t *testing.T) {
+		c := conversation.New()
+		c.Append(testMessage{role: "user", content: "message 1"})
+		c.Append(testMessage{role: "user", content: "message 3"})
+		c.Insert(1, testMessage{role: "user", content: "message 2"})
+		if len(c.Messages()) != 3 {
+			t.Errorf("expected conversation to have three messages")
+		}
+		if c.Messages()[1].Content() != "message 2" {
+			t.Errorf("expected second message to be message 2")
+		}
+	})
+	t.Run("insert out of range appends", func(t *testing.T) {
+		c := conversation.New()
+		c.Append(testMessage{role: "user", content: "message 1"})
+		c.Append(testMessage{role: "user", content: "message 2"})
+		c.Insert(3, testMessage{role: "user", content: "message 3"})
+		if len(c.Messages()) != 3 {
+			t.Errorf("expected conversation to have three messages")
+		}
+		if c.Messages()[2].Content() != "message 3" {
+			t.Errorf("expected third message to be message 3")
+		}
+	})
+	t.Run("replace", func(t *testing.T) {
+		c := conversation.New()
+		c.Append(testMessage{role: "user", content: "message 1"})
+		c.Append(testMessage{role: "user", content: "message two"})
+		c.Replace(1, testMessage{role: "user", content: "message 2"})
+		if len(c.Messages()) != 2 {
+			t.Errorf("expected conversation to have two messages")
+		}
+		if c.Messages()[1].Content() != "message 2" {
+			t.Errorf("expected second message to be message 2")
+		}
+	})
+	t.Run("replace out of range appends", func(t *testing.T) {
+		c := conversation.New()
+		c.Append(testMessage{role: "user", content: "message 1"})
+		c.Append(testMessage{role: "user", content: "message 2"})
+		c.Replace(3, testMessage{role: "user", content: "message 3"})
+		if len(c.Messages()) != 3 {
+			t.Errorf("expected conversation to have three messages")
+		}
+		if c.Messages()[2].Content() != "message 3" {
+			t.Errorf("expected third message to be message 3")
+		}
+	})
+	t.Run("marshal", func(t *testing.T) {
+		c := conversation.New()
+		c.Append(testMessage{role: "user", content: "message 1"})
+		c.Append(testMessage{role: "user", content: "message 2"})
+		b, err := c.MarshalJSON()
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+		if string(b) != `[{"role":"user","content":"message 1"},{"role":"user","content":"message 2"}]` {
+			t.Errorf("expected json to be [{\"role\":\"user\",\"content\":\"message 1\"},{\"role\":\"user\",\"content\":\"message 2\"}], got %s", string(b))
+		}
+	})
+}
+
+type testMessage struct {
+	role    string
+	content string
+}
+
+func (m testMessage) Role() string {
+	return m.role
+}
+
+func (m testMessage) Content() string {
+	return m.content
+}
