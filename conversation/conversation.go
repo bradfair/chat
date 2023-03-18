@@ -20,6 +20,17 @@ func (c *Conversation) Messages() []Message {
 	return c.messages
 }
 
+// Message returns the message at the given index. If the index is out of range, nil is returned.
+func (c *Conversation) Message(i uint) Message {
+	c.mutex.Lock()
+	c.mutex.Unlock()
+	c.init()
+	if i >= uint(len(c.messages)) {
+		return nil
+	}
+	return c.messages[i]
+}
+
 // Append appends a message to the conversation.
 func (c *Conversation) Append(m Message) {
 	c.mutex.Lock()

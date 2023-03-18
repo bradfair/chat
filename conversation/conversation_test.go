@@ -18,6 +18,12 @@ func TestConversation(t *testing.T) {
 			t.Errorf("expected conversation to be empty")
 		}
 	})
+	t.Run("message out of range", func(t *testing.T) {
+		c := conversation.New()
+		if c.Message(0) != nil {
+			t.Errorf("expected message to be nil")
+		}
+	})
 	t.Run("append", func(t *testing.T) {
 		c := conversation.New()
 		c.Append(testMessage{role: "user", content: "message 1"})
@@ -25,7 +31,7 @@ func TestConversation(t *testing.T) {
 		if len(c.Messages()) != 2 {
 			t.Errorf("expected conversation to have two messages")
 		}
-		if c.Messages()[1].Content() != "message 2" {
+		if c.Message(1).Content() != "message 2" {
 			t.Errorf("expected second message to be message 2")
 		}
 	})
@@ -36,7 +42,7 @@ func TestConversation(t *testing.T) {
 		if len(c.Messages()) != 2 {
 			t.Errorf("expected conversation to have two messages")
 		}
-		if c.Messages()[0].Content() != "message 1" {
+		if c.Message(0).Content() != "message 1" {
 			t.Errorf("expected first message to be message 1")
 		}
 	})
@@ -48,7 +54,7 @@ func TestConversation(t *testing.T) {
 		if len(c.Messages()) != 1 {
 			t.Errorf("expected conversation to have one message")
 		}
-		if c.Messages()[0].Content() != "message 2" {
+		if c.Message(0).Content() != "message 2" {
 			t.Errorf("expected first message to be message 2")
 		}
 		if m.Content() != "message 1" {
@@ -75,7 +81,7 @@ func TestConversation(t *testing.T) {
 		if len(c.Messages()) != 3 {
 			t.Errorf("expected conversation to have three messages")
 		}
-		if c.Messages()[1].Content() != "message 2" {
+		if c.Message(1).Content() != "message 2" {
 			t.Errorf("expected second message to be message 2")
 		}
 	})
@@ -87,7 +93,7 @@ func TestConversation(t *testing.T) {
 		if len(c.Messages()) != 3 {
 			t.Errorf("expected conversation to have three messages")
 		}
-		if c.Messages()[2].Content() != "message 3" {
+		if c.Message(2).Content() != "message 3" {
 			t.Errorf("expected third message to be message 3")
 		}
 	})
@@ -99,7 +105,7 @@ func TestConversation(t *testing.T) {
 		if len(c.Messages()) != 2 {
 			t.Errorf("expected conversation to have two messages")
 		}
-		if c.Messages()[1].Content() != "message 2" {
+		if c.Message(1).Content() != "message 2" {
 			t.Errorf("expected second message to be message 2")
 		}
 	})
@@ -111,7 +117,7 @@ func TestConversation(t *testing.T) {
 		if len(c.Messages()) != 3 {
 			t.Errorf("expected conversation to have three messages")
 		}
-		if c.Messages()[2].Content() != "message 3" {
+		if c.Message(2).Content() != "message 3" {
 			t.Errorf("expected third message to be message 3")
 		}
 	})
@@ -131,7 +137,7 @@ func TestConversation(t *testing.T) {
 		p := conversation.New()
 		p.Append(testMessage{role: "user", content: "message 1"})
 		p.Append(testMessage{role: "user", content: "message 2"})
-		c := p.NewChild(p.Messages()[0])
+		c := p.NewChild(p.Message(0))
 		c.Append(testMessage{role: "user", content: "message 3"})
 		c.Append(testMessage{role: "user", content: "message 4"})
 		if len(p.Messages()) != 2 {
