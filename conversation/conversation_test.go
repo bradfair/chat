@@ -6,6 +6,12 @@ import (
 )
 
 func TestConversation(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		c := conversation.Conversation{}
+		if len(c.Messages()) != 0 {
+			t.Errorf("expected conversation to be empty")
+		}
+	})
 	t.Run("new", func(t *testing.T) {
 		c := conversation.New()
 		if len(c.Messages()) != 0 {
@@ -119,6 +125,23 @@ func TestConversation(t *testing.T) {
 		}
 		if string(b) != `[{"role":"user","content":"message 1"},{"role":"user","content":"message 2"}]` {
 			t.Errorf("expected json to be [{\"role\":\"user\",\"content\":\"message 1\"},{\"role\":\"user\",\"content\":\"message 2\"}], got %s", string(b))
+		}
+	})
+	t.Run("parent/child", func(t *testing.T) {
+		p := conversation.New()
+		p.Append(testMessage{role: "user", content: "message 1"})
+		p.Append(testMessage{role: "user", content: "message 2"})
+		c := p.NewChild(p.Messages()[0])
+		c.Append(testMessage{role: "user", content: "message 3"})
+		c.Append(testMessage{role: "user", content: "message 4"})
+		if len(p.Messages()) != 2 {
+			t.Errorf("expected parent conversation to have two messages")
+		}
+		if len(c.Messages()) != 3 {
+			t.Errorf("expected child conversation to have three messages")
+		}
+		if c.Parent() != p {
+			t.Errorf("expected parent to be parent")
 		}
 	})
 }
