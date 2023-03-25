@@ -3,6 +3,7 @@ package conversation_test
 import (
 	"errors"
 	"github.com/bradfair/chat/conversation"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -175,6 +176,20 @@ func TestConversation(t *testing.T) {
 		if tokenCount != 0 {
 			t.Errorf("expected token count to be 0, got %d", tokenCount)
 		}
+	})
+	t.Run("WithOptions", func(t *testing.T) {
+		t.Run("WithMessages overwrites existing messages", func(t *testing.T) {
+			c := conversation.New()
+			c.Append(testMessage{role: "user", content: "message 1"})
+			want := []conversation.Message{testMessage{role: "user", content: "should overwrite existing messages"}}
+			c.WithOptions(conversation.WithMessages(want...))
+			if len(c.Messages()) != 1 {
+				t.Errorf("expected conversation to have one message")
+			}
+			if !reflect.DeepEqual(c.Message(0), want[0]) {
+				t.Errorf("expected message to be %v, got %v", want[0], c.Message(0))
+			}
+		})
 	})
 }
 

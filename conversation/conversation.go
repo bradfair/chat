@@ -140,6 +140,16 @@ func (c *Conversation) NewChild(messages ...Message) *Conversation {
 	return New(WithMessages(messages...), WithParent(c))
 }
 
+// WithOptions sets options for the current conversation.
+func (c *Conversation) WithOptions(options ...Option) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	for _, option := range options {
+		option(c)
+	}
+}
+
 // init initializes the conversation.
 func (c *Conversation) init() {
 	if c.messages == nil {
