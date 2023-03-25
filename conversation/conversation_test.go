@@ -1,7 +1,9 @@
 package conversation_test
 
 import (
+	"errors"
 	"github.com/bradfair/chat/conversation"
+	"strings"
 	"testing"
 )
 
@@ -150,11 +152,36 @@ func TestConversation(t *testing.T) {
 			t.Errorf("expected parent to be parent")
 		}
 	})
+	t.Run("count tokens", func(t *testing.T) {
+		c := conversation.New()
+		c.Append(testMessage{role: "user", content: "message 1"})
+		c.Append(testMessage{role: "user", content: "message 2"})
+		tokenCount, err := c.CountTokens()
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+		if tokenCount != 4 {
+			t.Errorf("expected token count to be 4, got %d", tokenCount)
+		}
+	})
+	t.Run("count tokens with error", func(t *testing.T) {
+		c := conversation.New()
+		c.Append(testMessage{role: "user", content: "message 1"})
+		c.Append(testMessage{role: "user", content: "message 2", tokenizeError: errTokenizing})
+		tokenCount, err := c.CountTokens()
+		if !errors.Is(err, errTokenizing) {
+			t.Errorf("expected error to be %v, got %v", errTokenizing, err)
+		}
+		if tokenCount != 0 {
+			t.Errorf("expected token count to be 0, got %d", tokenCount)
+		}
+	})
 }
 
 type testMessage struct {
-	role    string
-	content string
+	role          string
+	content       string
+	tokenizeError error
 }
 
 func (m testMessage) Role() string {
@@ -164,3 +191,16 @@ func (m testMessage) Role() string {
 func (m testMessage) Content() string {
 	return m.content
 }
+
+func (m testMessage) Tokenize() ([]uint, error) {
+	if m.tokenizeError != nil {
+		return nil, m.tokenizeError
+	}
+	var tokens []uint
+	for id, _ := range strings.Split(m.content, " ") {
+		tokens = append(tokens, uint(id))
+	}
+	return tokens, nil
+}
+
+var errTokenizing = errors.New("error tokenizing")

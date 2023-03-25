@@ -2,6 +2,8 @@ package conversation
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"sync"
 )
 
@@ -29,6 +31,22 @@ func (c *Conversation) Message(i uint) Message {
 		return nil
 	}
 	return c.messages[i]
+}
+
+// CountTokens returns the number of tokens in the conversation.
+func (c *Conversation) CountTokens() (int, error) {
+	c.mutex.Lock()
+	c.mutex.Unlock()
+	c.init()
+	var count int
+	for _, m := range c.messages {
+		tokens, err := m.Tokenize()
+		if err != nil {
+			return 0, fmt.Errorf("could not tokenize message %q: %w", m.Content(), err)
+		}
+		count += len(tokens)
+	}
+	return count, nil
 }
 
 // Append appends a message to the conversation.
@@ -119,9 +137,10 @@ func (c *Conversation) Parent() *Conversation {
 func (c *Conversation) NewChild(messages ...Message) *Conversation {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	return &Conversation{messages: messages, parent: c}
+	return New(WithMessages(messages...), WithParent(c))
 }
 
+// init initializes the conversation.
 func (c *Conversation) init() {
 	if c.messages == nil {
 		c.messages = []Message{}
@@ -129,12 +148,37 @@ func (c *Conversation) init() {
 }
 
 // New creates a new conversation.
-func New(messages ...Message) *Conversation {
-	return &Conversation{messages: messages}
+func New(options ...Option) *Conversation {
+	c := &Conversation{}
+	for _, option := range options {
+		option(c)
+	}
+	return c
+}
+
+// Option is a function that configures a conversation.
+type Option func(*Conversation)
+
+// WithMessages sets the messages in the conversation.
+func WithMessages(messages ...Message) Option {
+	return func(c *Conversation) {
+		c.messages = messages
+	}
+}
+
+// WithParent sets the parent conversation.
+func WithParent(parent *Conversation) Option {
+	return func(c *Conversation) {
+		c.parent = parent
+	}
 }
 
 // Message is a piece of content sent from a role.
 type Message interface {
 	Role() string
 	Content() string
+	Tokenize() ([]uint, error)
 }
+
+// ErrTokenizingMessage is returned when a message cannot be tokenized.
+var ErrTokenizingMessage = errors.New("error tokenizing message")
