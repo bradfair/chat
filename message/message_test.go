@@ -3,7 +3,6 @@ package message_test
 import (
 	"errors"
 	"github.com/bradfair/chat/message"
-	"github.com/bradfair/chat/tokenizer"
 	"strings"
 	"testing"
 )
@@ -52,7 +51,7 @@ func TestMessage(t *testing.T) {
 			msg := message.New(
 				message.WithRole("user"),
 				message.WithContent("hello world"),
-				message.WithTokenizer(tokenizer.TokenizerFunc(testTokenizer)),
+				message.WithTokenizer(message.TokenizerFunc(testTokenizer)),
 			)
 			tokens, err := msg.Tokenize()
 			if err != nil {

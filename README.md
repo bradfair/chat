@@ -1,5 +1,5 @@
 # Chat Module
-This module is designed to make it easy to represent and work with conversations in Golang. It consists of three packages: conversation, message, and tokenizer.
+This module is designed to make it easy to represent and work with conversations in Golang. It consists of two packages: conversation, and message.
 
 A conversation is an ordered collection of messages. A message is a string of text (the content) that is associated with
 its sender (the role). Since OpenAI prices their API usage based on the combined number of tokens in a request/completion,
@@ -21,10 +21,7 @@ Below is a brief overview of each package. For more detailed information, see th
 The [conversation package](conversation) provides a Conversation struct with relevant methods/functions to create and manipulate conversations.
 
 ### Message Package
-The [message package](message) provides a Message struct with relevant methods/functions to create and manipulate messages.
-
-### Tokenizer Package
-The [tokenizer package](tokenizer) defines a Tokenizer interface and provides a TokenizerFunc type in order to satisfy the Tokenizer interface using custom functions. This allows you to use your own tokenizer function, or one of the small number of available open-source tokenizers.
+The [message package](message) provides a Message struct with relevant methods/functions to create and manipulate messages. It also defines a Tokenizer interface and provides a TokenizerFunc type in order to satisfy the Tokenizer interface using custom functions. This allows you to use your own tokenizer function, or one of the small number of available open-source tokenizers. 
 
 ## License
 This module is licensed under the MIT License. See [LICENSE](LICENSE) for more information.

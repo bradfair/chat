@@ -2,7 +2,6 @@ package conversation
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"sync"
 )
@@ -189,6 +188,3 @@ type Message interface {
 	Content() string
 	Tokenize() ([]uint, error)
 }
-
-// ErrTokenizingMessage is returned when a message cannot be tokenized.
-var ErrTokenizingMessage = errors.New("error tokenizing message")

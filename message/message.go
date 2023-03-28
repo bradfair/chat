@@ -2,15 +2,13 @@ package message
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/bradfair/chat/tokenizer"
 )
 
 // Message is a piece of content sent from a role.
 type Message struct {
 	role      Role
 	content   string
-	tokenizer tokenizer.Tokenizer
+	tokenizer Tokenizer
 }
 
 // Role returns the name of the role that sent the message.
@@ -76,11 +74,8 @@ func WithContent(content string) Option {
 }
 
 // WithTokenizer configures a message with a tokenizer.
-func WithTokenizer(t tokenizer.Tokenizer) Option {
+func WithTokenizer(t Tokenizer) Option {
 	return func(m *Message) {
 		m.tokenizer = t
 	}
 }
-
-// ErrNoTokenizer is returned when a message is missing a tokenizer.
-var ErrNoTokenizer = fmt.Errorf("missing tokenizer")
