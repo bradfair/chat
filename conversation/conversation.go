@@ -133,20 +133,25 @@ func (c *Conversation) Parent() *Conversation {
 // This is useful for creating a new conversation based on the current one, such as when a chatbot needs to "talk to itself"
 // in order to determine its response. Once the chatbot has determined its response, it can easily append the response to
 // the parent conversation.
-func (c *Conversation) NewChild(messages ...Message) *Conversation {
+func (c *Conversation) NewChild() *Conversation {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	return New(WithMessages(messages...), WithParent(c))
+	return New().WithParent(c)
 }
 
-// WithOptions sets options for the current conversation.
-func (c *Conversation) WithOptions(options ...Option) {
+func (c *Conversation) WithMessages(messages ...Message) *Conversation {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+	c.init()
+	c.messages = messages
+	return c
+}
 
-	for _, option := range options {
-		option(c)
-	}
+func (c *Conversation) WithParent(parent *Conversation) *Conversation {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.parent = parent
+	return c
 }
 
 // init initializes the conversation.
@@ -157,29 +162,9 @@ func (c *Conversation) init() {
 }
 
 // New creates a new conversation.
-func New(options ...Option) *Conversation {
-	c := &Conversation{}
-	for _, option := range options {
-		option(c)
-	}
+func New() *Conversation {
+	c := new(Conversation)
 	return c
-}
-
-// Option is a function that configures a conversation.
-type Option func(*Conversation)
-
-// WithMessages sets the messages in the conversation.
-func WithMessages(messages ...Message) Option {
-	return func(c *Conversation) {
-		c.messages = messages
-	}
-}
-
-// WithParent sets the parent conversation.
-func WithParent(parent *Conversation) Option {
-	return func(c *Conversation) {
-		c.parent = parent
-	}
 }
 
 // Message is a piece of content sent from a role.

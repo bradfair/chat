@@ -140,7 +140,7 @@ func TestConversation(t *testing.T) {
 		p := conversation.New()
 		p.Append(testMessage{role: "user", content: "message 1"})
 		p.Append(testMessage{role: "user", content: "message 2"})
-		c := p.NewChild(p.Message(0))
+		c := p.NewChild().WithMessages(p.Message(0))
 		c.Append(testMessage{role: "user", content: "message 3"})
 		c.Append(testMessage{role: "user", content: "message 4"})
 		if len(p.Messages()) != 2 {
@@ -182,7 +182,7 @@ func TestConversation(t *testing.T) {
 			c := conversation.New()
 			c.Append(testMessage{role: "user", content: "message 1"})
 			want := []conversation.Message{testMessage{role: "user", content: "should overwrite existing messages"}}
-			c.WithOptions(conversation.WithMessages(want...))
+			c.WithMessages(want...)
 			if len(c.Messages()) != 1 {
 				t.Errorf("expected conversation to have one message")
 			}

@@ -15,7 +15,7 @@ func TestMessage(t *testing.T) {
 		}
 	})
 	t.Run("new", func(t *testing.T) {
-		msg := message.New(message.WithRole("user"), message.WithContent("hello"))
+		msg := message.New().WithRole("user").WithContent("hello")
 		if msg.IsEmpty() {
 			t.Errorf("expected message to not be empty")
 		}
@@ -27,7 +27,7 @@ func TestMessage(t *testing.T) {
 		}
 	})
 	t.Run("marshal", func(t *testing.T) {
-		msg := message.New(message.WithRole("user"), message.WithContent("hello"))
+		msg := message.New().WithRole("user").WithContent("hello")
 		b, err := msg.MarshalJSON()
 		if err != nil {
 			t.Errorf("expected no error, got %v", err)
@@ -38,7 +38,7 @@ func TestMessage(t *testing.T) {
 	})
 	t.Run("tokenize", func(t *testing.T) {
 		t.Run("no tokenizer", func(t *testing.T) {
-			msg := message.New(message.WithRole("user"), message.WithContent("hello"))
+			msg := message.New().WithRole("user").WithContent("hello")
 			tokens, err := msg.Tokenize()
 			if !errors.Is(err, message.ErrNoTokenizer) {
 				t.Errorf("expected ErrNoTokenizer, got %v", err)
@@ -48,11 +48,7 @@ func TestMessage(t *testing.T) {
 			}
 		})
 		t.Run("with tokenizer", func(t *testing.T) {
-			msg := message.New(
-				message.WithRole("user"),
-				message.WithContent("hello world"),
-				message.WithTokenizer(message.TokenizerFunc(testTokenizer)),
-			)
+			msg := message.New().WithRole("user").WithContent("hello world").WithTokenizer(message.TokenizerFunc(testTokenizer))
 			tokens, err := msg.Tokenize()
 			if err != nil {
 				t.Errorf("expected no error, got %v", err)

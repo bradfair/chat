@@ -46,36 +46,26 @@ func (m Message) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// New creates a new message.
-func New(options ...Option) Message {
-	m := Message{}
-	for _, option := range options {
-		option(&m)
-	}
-
+// WithRole configures a message with a role.
+func (m Message) WithRole(role Role) Message {
+	m.role = role
 	return m
 }
 
-// Option is a function that configures a message.
-type Option func(*Message)
-
-// WithRole configures a message with a role.
-func WithRole(role Role) Option {
-	return func(m *Message) {
-		m.role = role
-	}
-}
-
 // WithContent configures a message with content.
-func WithContent(content string) Option {
-	return func(m *Message) {
-		m.content = content
-	}
+func (m Message) WithContent(content string) Message {
+	m.content = content
+	return m
 }
 
 // WithTokenizer configures a message with a tokenizer.
-func WithTokenizer(t Tokenizer) Option {
-	return func(m *Message) {
-		m.tokenizer = t
-	}
+func (m Message) WithTokenizer(t Tokenizer) Message {
+	m.tokenizer = t
+	return m
+}
+
+// New creates a new message.
+func New() Message {
+	m := Message{}
+	return m
 }
