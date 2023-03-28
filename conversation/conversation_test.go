@@ -207,13 +207,13 @@ func (m testMessage) Content() string {
 	return m.content
 }
 
-func (m testMessage) Tokenize() ([]uint, error) {
+func (m testMessage) Tokenize() ([]int, error) {
 	if m.tokenizeError != nil {
 		return nil, m.tokenizeError
 	}
-	var tokens []uint
+	var tokens []int
 	for id, _ := range strings.Split(m.content, " ") {
-		tokens = append(tokens, uint(id))
+		tokens = append(tokens, id)
 	}
 	return tokens, nil
 }

@@ -186,5 +186,5 @@ func WithParent(parent *Conversation) Option {
 type Message interface {
 	Role() string
 	Content() string
-	Tokenize() ([]uint, error)
+	Tokenize() ([]int, error)
 }
