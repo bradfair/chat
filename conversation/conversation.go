@@ -22,11 +22,14 @@ func (c *Conversation) Messages() []Message {
 }
 
 // Message returns the message at the given index. If the index is out of range, nil is returned.
-func (c *Conversation) Message(i uint) Message {
+func (c *Conversation) Message(i int) Message {
+	if i < 0 {
+		return nil
+	}
 	c.mutex.Lock()
 	c.mutex.Unlock()
 	c.init()
-	if i >= uint(len(c.messages)) {
+	if i >= len(c.messages) {
 		return nil
 	}
 	return c.messages[i]
@@ -65,11 +68,14 @@ func (c *Conversation) Prepend(m Message) {
 }
 
 // Remove removes a message at the given index and returns it. If the index is out of range, nil is returned.
-func (c *Conversation) Remove(i uint) Message {
+func (c *Conversation) Remove(i int) Message {
+	if i < 0 {
+		return nil
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.init()
-	if i >= uint(len(c.messages)) {
+	if i >= len(c.messages) {
 		return nil
 	}
 	m := c.messages[i]
@@ -78,12 +84,12 @@ func (c *Conversation) Remove(i uint) Message {
 }
 
 // Insert inserts a message at the given index. If the index is out of range, the message is appended.
-func (c *Conversation) Insert(i uint, m Message) {
+func (c *Conversation) Insert(i int, m Message) {
 	c.mutex.Lock()
 	c.init()
-	if i >= uint(len(c.messages)) {
-		c.mutex.Unlock()
+	if i >= len(c.messages) || i < 0 {
 		c.Append(m)
+		c.mutex.Unlock()
 		return
 	}
 	defer c.mutex.Unlock()
@@ -91,12 +97,12 @@ func (c *Conversation) Insert(i uint, m Message) {
 }
 
 // Replace replaces a message at the given index. If the index is out of range, the message is appended.
-func (c *Conversation) Replace(i uint, m Message) {
+func (c *Conversation) Replace(i int, m Message) {
 	c.mutex.Lock()
 	c.init()
-	if i >= uint(len(c.messages)) {
-		c.mutex.Unlock()
+	if i >= len(c.messages) || i < 0 {
 		c.Append(m)
+		c.mutex.Unlock()
 		return
 	}
 	defer c.mutex.Unlock()
