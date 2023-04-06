@@ -3,6 +3,7 @@ package conversation
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 )
 
@@ -14,7 +15,7 @@ type Conversation struct {
 }
 
 // Messages returns the messages in the conversation.
-func (c *Conversation) Messages() []Message {
+func (c *Conversation) Messages() Messages {
 	c.mutex.Lock()
 	c.mutex.Unlock()
 	c.init()
@@ -145,6 +146,7 @@ func (c *Conversation) NewChild() *Conversation {
 	return New().WithParent(c)
 }
 
+// WithMessages sets the messages in the conversation.
 func (c *Conversation) WithMessages(messages ...Message) *Conversation {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -153,6 +155,7 @@ func (c *Conversation) WithMessages(messages ...Message) *Conversation {
 	return c
 }
 
+// WithParent sets the parent conversation.
 func (c *Conversation) WithParent(parent *Conversation) *Conversation {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -178,4 +181,20 @@ type Message interface {
 	Role() string
 	Content() string
 	Tokenize() ([]int, error)
+}
+
+type Messages []Message
+
+// Len returns the number of messages.
+func (m Messages) Len() int {
+	return len(m)
+}
+
+// Transcript returns the messages as a string.
+func (m Messages) Transcript() string {
+	var transcript string
+	for _, message := range m {
+		transcript += fmt.Sprintf("%s: %s\n", message.Role(), message.Content())
+	}
+	return strings.TrimSpace(transcript)
 }
