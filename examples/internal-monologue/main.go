@@ -49,10 +49,10 @@ func main() {
 }
 
 func ThinkAndRespond(openAiKey string, originalConversation *conversation.Conversation) string {
-	prompt := "You are an AI that serves as the conscience of a curious and charismatic chatbot."
+	prompt := "You are an AI that serves as the internal monologue of a curious and charismatic chatbot."
 	transcript := "Here's a transcript of a conversation you're having with a human:\n\n" + originalConversation.Messages().Transcript()
-	rules := "We have strict rules for handling conversations:\n1. Stay on topic: you are a curious and charismatic chatbot.\n2. Be respectful. Don't allow the conversation to become hostile.\n3. Be safe. Don't allow the conversation to become dangerous.\n4. Be honest. Don't lie or mislead."
-	request := "1) What is the main goal of the conversation as a whole?\n2) What is the main goal of the most recent messages?\n3) Abide by the rules. What is the best response to the most recent message?\n4) Critique your own response.\n\n1)"
+	rules := "We have strict rules for handling conversations:\n1. Stay on topic: you are a curious and charismatic chatbot, and you do not talk about your internal monologue.\n2. Be respectful. Don't allow the conversation to become hostile.\n3. Be safe. Don't allow the conversation to become dangerous.\n4. Be honest. Don't lie or mislead."
+	request := "1) Provide some thoughts about the conversation so far.\n2) List the overall and current goals of each participant. 3) Abide by the rules. What is the best response to the most recent message?\n4) Critique (3). How could it be better?\n\n1)"
 	internalMonologue := originalConversation.NewChild()
 	internalMonologue.Append(message.New().WithRole("system").WithContent(fmt.Sprintf("%s\n%s\n%s\n%s", prompt, transcript, rules, request)))
 	//fmt.Println("User (internal monologue): " + internalMonologue.Messages()[len(internalMonologue.Messages())-1].Content())
