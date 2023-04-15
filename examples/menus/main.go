@@ -1,115 +1,143 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
-func main() {
-	mainMenu := new(Action)
-	submenu1 := new(Action)
-	submenu2 := new(Action)
-	subsubmenu1 := new(Action)
-	action1 := new(Action)
-	action2 := new(Action)
+type PromptDoer interface {
+	Prompt() string
+	WithInput(input string) PromptDoer
+	WithParent(parent PromptDoer) PromptDoer
+	Do() (output string, next PromptDoer)
+}
 
-	mainMenu.Title = "Main Menu"
-	mainMenu.Prompt = fmt.Sprintf("%s\n1. sub-menu 1\n2. sub-menu 2\n3. Exit\n\nChoice: ", mainMenu.Title)
-	mainMenu.Do = func() (*Action, error) {
-		switch mainMenu.Input {
-		case "1":
-			return submenu1, nil
-		case "2":
-			return submenu2, nil
-		case "3":
-			os.Exit(0)
-		}
-		return mainMenu, fmt.Errorf("invalid input: %s", mainMenu.Input)
+type MenuItem struct {
+	Title string
+	PromptDoer
+}
+
+type Menu struct {
+	Title  string
+	input  string
+	Parent PromptDoer
+	Items  []MenuItem
+}
+
+func (m Menu) Prompt() string {
+	var menuItems string
+	for i, item := range m.Items {
+		menuItems += fmt.Sprintf("%d. %s\n", i+1, item.Title)
 	}
+	return fmt.Sprintf("%s\n%s\nChoice: ", m.Title, menuItems)
+}
 
-	submenu1.Title = "sub-menu 1"
-	submenu1.Prompt = fmt.Sprintf("%s\n1. sub-sub-menu 1\n2. action that prompts for input\n3. action that does not prompt for input\n4. Go back\n\nChoice: ", submenu1.Title)
-	submenu1.Parent = mainMenu
-	submenu1.Do = func() (*Action, error) {
-		switch submenu1.Input {
-		case "1":
-			return subsubmenu1, nil
-		case "2":
-			action1.Parent = submenu1
-			return action1, nil
-		case "3":
-			action2.Parent = submenu1
-			return action2, nil
-		case "4":
-			return mainMenu, nil
-		}
-		return submenu1, fmt.Errorf("invalid input: %s", submenu1.Input)
+func (m Menu) Do() (string, PromptDoer) {
+	choice, err := strconv.Atoi(m.input)
+	if err != nil || choice < 1 || choice > len(m.Items) {
+		return fmt.Sprintf("invalid input: %s", m.input), m
 	}
+	return "", m.Items[choice-1]
+}
 
-	submenu2.Title = "sub-menu 2"
-	submenu2.Prompt = fmt.Sprintf("%s\n1. action that prompts for input\n2. action that does not prompt for input\n3. Go back\n\nChoice: ", submenu2.Title)
-	submenu2.Parent = mainMenu
-	submenu2.Do = func() (*Action, error) {
-		switch submenu2.Input {
-		case "1":
-			action1.Parent = submenu2
-			return action1, nil
-		case "2":
-			action2.Parent = submenu2
-			return action2, nil
-		case "3":
-			return mainMenu, nil
-		}
-		return submenu2, fmt.Errorf("invalid input: %s", submenu2.Input)
-	}
+func (m Menu) WithInput(input string) PromptDoer {
+	m.input = input
+	return m
+}
 
-	subsubmenu1.Title = "sub-sub-menu 1"
-	subsubmenu1.Prompt = fmt.Sprintf("%s\n1. Go back\n\nChoice: ", subsubmenu1.Title)
-	subsubmenu1.Parent = submenu1
-	subsubmenu1.Do = func() (*Action, error) {
-		switch subsubmenu1.Input {
-		case "1":
-			return submenu1, nil
-		}
-		return subsubmenu1, fmt.Errorf("invalid input: %s", subsubmenu1.Input)
-	}
-
-	action1.Title = "action that prompts for input"
-	action1.Prompt = fmt.Sprintf("%s\nWhat would you like to say? ", action1.Title)
-	action1.Do = func() (*Action, error) {
-		fmt.Printf("You said: %s\n", action1.Input)
-		return action1.Parent, nil
-	}
-
-	action2.Title = "action that does not prompt for input"
-	action2.Do = func() (*Action, error) {
-		fmt.Println("Hello, world!")
-		return action2.Parent, nil
-	}
-
-	// Start at the main menu
-	currentAction := mainMenu
-	for {
-		if currentAction.Prompt != "" {
-			fmt.Print(currentAction.Prompt)
-			var input string
-			fmt.Scanln(&input)
-			currentAction.Input = strings.TrimSpace(input)
-		}
-		nextAction, err := currentAction.Do()
-		if err != nil {
-			fmt.Println(err)
-		}
-		currentAction = nextAction
-	}
-
+func (m Menu) WithParent(parent PromptDoer) PromptDoer {
+	m.Parent = parent
+	return m
 }
 
 type Action struct {
-	Title  string
-	Prompt string
-	Input  string
-	Do     func() (*Action, error)
-	Parent *Action
+	PromptText string
+	input      string
+	parent     PromptDoer
+	DoFunc     func(input string, parent PromptDoer) (output string, next PromptDoer)
+}
+
+func (a Action) Prompt() string {
+	return a.PromptText
+}
+
+func (a Action) Do() (string, PromptDoer) {
+	return a.DoFunc(a.input, a.parent)
+}
+
+func (a Action) WithInput(input string) PromptDoer {
+	a.input = input
+	return a
+}
+
+func (a Action) WithParent(parent PromptDoer) PromptDoer {
+	a.parent = parent
+	return a
+}
+
+func main() {
+	mainMenu := &Menu{Title: "Main Menu"}
+	submenu1 := &Menu{Title: "sub-menu 1"}
+	submenu2 := &Menu{Title: "sub-menu 2"}
+
+	subsubmenu1 := &Menu{Title: "sub-sub-menu 1"}
+
+	action1 := &Action{
+		PromptText: "What would you like to say? ",
+		DoFunc: func(input string, parent PromptDoer) (string, PromptDoer) {
+			return fmt.Sprintf("you said: %s", input), parent
+		},
+	}
+
+	action2 := &Action{DoFunc: func(input string, parent PromptDoer) (string, PromptDoer) { return "Hello, World!", parent }}
+
+	exitAction := &Action{DoFunc: func(input string, parent PromptDoer) (string, PromptDoer) { os.Exit(0); return "", nil }}
+
+	mainMenu.Items = []MenuItem{
+		{"sub-menu 1", submenu1},
+		{"sub-menu 2", submenu2},
+		{"Exit", exitAction},
+	}
+
+	submenu1.Items = []MenuItem{
+		{"sub-sub-menu 1", subsubmenu1},
+		{"action that prompts for input", action1.WithParent(submenu1)},
+		{"action that does not prompt for input", action2.WithParent(submenu1)},
+		{"Go back", mainMenu},
+	}
+	submenu1.Parent = mainMenu
+
+	submenu2.Items = []MenuItem{
+		{"action that prompts for input", action1.WithParent(submenu2)},
+		{"action that does not prompt for input", action2.WithParent(submenu2)},
+		{"Go back", mainMenu},
+	}
+	submenu2.Parent = mainMenu
+
+	subsubmenu1.Items = []MenuItem{
+		{"Go back", submenu1},
+	}
+	subsubmenu1.Parent = submenu1
+
+	var currentAction PromptDoer = mainMenu
+
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		var input, output string
+		prompt := currentAction.Prompt()
+		if prompt != "" {
+			fmt.Print(prompt)
+			scanner.Scan()
+			input = scanner.Text()
+			input = strings.TrimSpace(input)
+			if input == "" {
+				continue
+			}
+		}
+		output, currentAction = currentAction.WithInput(input).Do()
+		fmt.Println(output)
+	}
 }
