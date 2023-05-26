@@ -89,8 +89,8 @@ func (c *Conversation) Insert(i int, m Message) {
 	c.mutex.Lock()
 	c.init()
 	if i >= len(c.messages) || i < 0 {
-		c.Append(m)
 		c.mutex.Unlock()
+		c.Append(m)
 		return
 	}
 	defer c.mutex.Unlock()
@@ -102,8 +102,8 @@ func (c *Conversation) Replace(i int, m Message) {
 	c.mutex.Lock()
 	c.init()
 	if i >= len(c.messages) || i < 0 {
-		c.Append(m)
 		c.mutex.Unlock()
+		c.Append(m)
 		return
 	}
 	defer c.mutex.Unlock()
